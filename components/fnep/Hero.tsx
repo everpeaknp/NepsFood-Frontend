@@ -1,12 +1,12 @@
 'use client';
 
 import { useRef, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowDown, Play } from "lucide-react";
 import { motion } from "motion/react";
-gsap.registerPlugin(ScrollTrigger);
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -31,170 +31,109 @@ const Hero = () => {
     const particleIdRef = useRef(0);
     const cursorRef = useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = useState(false);
+    const pathname = usePathname();
 
     useGSAP(() => {
+        if (!container.current || !videoPillRef.current) return;
+
+        // ── Refresh ScrollTrigger after a short delay to ensure layout is settled ─────
+        const timeoutId = setTimeout(() => {
+            ScrollTrigger.refresh();
+        }, 100);
+
         // ── Entry animation ───────────────────────────────────────────
         const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
-        tl.from(".hero-line span", {
-            y: "110%",
+        
+        // Reset states to ensure visibility
+        gsap.set(".hero-line span, .hero-ui, .hero-fade, .hero-cta", { opacity: 0, y: 20 });
+        
+        tl.to(".hero-line span", {
+            y: 0,
+            opacity: 1,
             duration: 1.2,
             stagger: 0.1,
-        }).from(".hero-ui, .hero-fade", {
-            opacity: 0,
-            y: 20,
+            clearProps: "all"
+        }).to(".hero-ui, .hero-fade", {
+            opacity: 1,
+            y: 0,
             duration: 0.8,
             stagger: 0.1,
+            clearProps: "all"
         }, "-=0.5")
-          .from(videoPillRef.current, {
-            opacity: 0,
-            scale: 0.5,
-            duration: 1,
-            ease: "back.out(1.7)"
-          }, "-=0.8");
+          .to(".hero-cta", {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            clearProps: "all"
+          }, "-=0.3")
+          .fromTo(videoPillRef.current, 
+            { opacity: 0, scale: 0.5 },
+            { 
+                opacity: 1, 
+                scale: 1, 
+                duration: 1, 
+                ease: "back.out(1.7)",
+                clearProps: "opacity,scale" 
+            }, 
+            "-=0.8"
+          );
 
-        // ── Responsive Scroll Animation ──────────────────────────────────────────
-        if (!videoPillRef.current || !container.current) return;
-
+        // ── Scroll Animation ──────────────────────────────────────────
         const pill = videoPillRef.current;
         const hero = container.current;
-        const spacer = document.getElementById("video-spacer");
-        if (!spacer) return;
 
-        // Function to calculate responsive dimensions
-        const calculateDimensions = () => {
-            const heroRect = hero.getBoundingClientRect();
-            const pillRect = pill.getBoundingClientRect();
+        const tlScroll = gsap.timeline({
+            scrollTrigger: {
+                trigger: hero,
+                start: "top top",
+                end: "+=150%", 
+                scrub: 1,
+                pin: true,
+                invalidateOnRefresh: true,
+            },
+        });
 
-            // Dynamic padding calculation based on screen size
-            const screenWidth = window.innerWidth;
-            let horizontalPadding: number;
+        // 1. Fade UI out
+        tlScroll.to(".hero-fade, .hero-line, .hero-ui", {
+            opacity: 0,
+            y: -50,
+            stagger: 0.05,
+            ease: "power2.inOut"
+        }, 0);
 
-            if (screenWidth < 640) {
-                horizontalPadding = 24;
-            } else if (screenWidth < 768) {
-                horizontalPadding = 40;
-            } else if (screenWidth < 1024) {
-                horizontalPadding = 64;
-            } else {
-                horizontalPadding = 80;
-            }
+        // 2. Fade out CTAs with scroll
+        tlScroll.to(".hero-cta", {
+            opacity: 0,
+            y: 30,
+            stagger: 0.05,
+            ease: "power2.inOut"
+        }, 0.1);
 
-            // Calculate final dimensions dynamically
-            const finalWidth = heroRect.width;
-            const finalHeight = window.innerHeight;
-            const finalLeft = 0;
-            const finalTop = 0;
-
-            return {
-                initialRect: {
-                    top: pillRect.top,
-                    left: pillRect.left,
-                    width: pillRect.width,
-                    height: pillRect.height
-                },
-                finalDimensions: {
-                    top: finalTop,
-                    left: finalLeft,
-                    width: finalWidth,
-                    height: finalHeight
-                }
-            };
-        };
-
-        // Initial setup
-        const setupAnimation = () => {
-            const { initialRect, finalDimensions } = calculateDimensions();
-
-            pill.style.borderRadius = "60px";
-
-            gsap.set(pill, {
-                position: "fixed",
-                top: initialRect.top,
-                left: initialRect.left,
-                width: initialRect.width,
-                height: initialRect.height,
-                xPercent: 0,
-                yPercent: 0,
-                margin: 0,
-                zIndex: 60,
-                backgroundColor: "black"
-            });
-
-            const tlScroll = gsap.timeline({
-                scrollTrigger: {
-                    trigger: hero,
-                    start: "top top",
-                    end: "+=200%", // Pin for much longer to let the video "play"
-                    scrub: 1,
-                    pin: true,
-                    invalidateOnRefresh: true,
-                    refreshPriority: 10,
-                },
-            });
-
-            // 1. Fade UI out (except CTAs)
-            tlScroll.to(".hero-fade, .hero-line", {
-                opacity: 0,
-                y: -50,
-                stagger: 0.05,
-                ease: "power2.inOut"
-            }, 0);
-
-            // 2. Fade out CTAs separately with delay
-            tlScroll.to(".hero-cta", {
-                opacity: 0,
-                y: 20,
-                stagger: 0.1,
-                ease: "power2.inOut"
-            }, 0.3);
-
-            // 2. Expand pill to full viewport
-            tlScroll.to(pill, {
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                borderRadius: "0px",
-                ease: "power1.inOut"
-            }, 0.2);
-
-            return tlScroll;
-        };
-
-        let currentAnimation = setupAnimation();
-
-        let resizeTimeout: NodeJS.Timeout;
-        const handleResize = () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (currentAnimation) {
-                    currentAnimation.scrollTrigger?.kill();
-                    currentAnimation.kill();
-                }
-                currentAnimation = setupAnimation();
-                ScrollTrigger.refresh();
-            }, 100);
-        };
-
-        window.addEventListener('resize', handleResize);
+        // 2. Expand pill to full viewport
+        // We use absolute coordinates relative to the pinned container
+        tlScroll.to(pill, {
+            bottom: "0%",
+            width: "100vw",
+            height: "100vh",
+            borderRadius: "0px",
+            maxWidth: "100vw",
+            duration: 1,
+            ease: "power1.inOut"
+        }, 0);
 
         return () => {
-            window.removeEventListener('resize', handleResize);
-            clearTimeout(resizeTimeout);
-            if (currentAnimation) {
-                currentAnimation.scrollTrigger?.kill();
-                currentAnimation.kill();
-            }
+            clearTimeout(timeoutId);
+            ScrollTrigger.getAll().forEach(st => st.kill());
         };
 
-    }, { dependencies: [] });
+    }, { dependencies: [pathname], scope: container });
 
     // Smoke trail effect with physics
     useEffect(() => {
         let throttleTimer: NodeJS.Timeout | null = null;
         
         const handleMouseMove = (e: MouseEvent) => {
-            // Update cursor position directly via DOM for instant movement
             if (cursorRef.current) {
                 cursorRef.current.style.left = `${e.clientX}px`;
                 cursorRef.current.style.top = `${e.clientY}px`;
@@ -204,9 +143,8 @@ const Hero = () => {
             
             throttleTimer = setTimeout(() => {
                 throttleTimer = null;
-            }, 15); // Spawn particles every 15ms for much denser smoke
+            }, 15);
 
-            // Create multiple particles per mouse move for denser smoke
             for (let i = 0; i < 5; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Math.random() * 0.5 + 0.3;
@@ -219,7 +157,7 @@ const Hero = () => {
                     size: Math.random() * 40 + 25,
                     opacity: Math.random() * 0.5 + 0.4,
                     velocityX: Math.cos(angle) * speed,
-                    velocityY: Math.sin(angle) * speed - 1.5, // Upward bias
+                    velocityY: Math.sin(angle) * speed - 1.5,
                     rotation: Math.random() * 360,
                     rotationSpeed: (Math.random() - 0.5) * 2,
                     life: 1.0,
@@ -257,9 +195,8 @@ const Hero = () => {
             setSmokeParticles(prev => 
                 prev
                     .map(particle => {
-                        // Physics simulation
-                        const drag = 0.98; // Air resistance
-                        const gravity = -0.05; // Slight upward force (negative gravity)
+                        const drag = 0.98;
+                        const gravity = -0.05;
                         const turbulence = (Math.random() - 0.5) * 0.3;
                         
                         return {
@@ -269,14 +206,14 @@ const Hero = () => {
                             velocityX: particle.velocityX * drag + turbulence,
                             velocityY: (particle.velocityY + gravity) * drag,
                             rotation: particle.rotation + particle.rotationSpeed,
-                            opacity: particle.opacity * 0.97, // Gradual fade
-                            size: particle.size + 0.8, // Expand as it rises
+                            opacity: particle.opacity * 0.97,
+                            size: particle.size + 0.8,
                             life: particle.life - 0.015,
                         };
                     })
                     .filter(particle => particle.life > 0 && particle.opacity > 0.01)
             );
-        }, 16); // ~60fps
+        }, 16);
 
         return () => clearInterval(interval);
     }, []);
@@ -289,14 +226,15 @@ const Hero = () => {
             {/* Custom Black Circle Cursor */}
             <div
                 ref={cursorRef}
-                className="fixed w-5 h-5 bg-slate-900 rounded-full pointer-events-none z-[60]"
+                className="fixed w-5 h-5 bg-slate-900 rounded-full pointer-events-none z-[100]"
                 style={{
                     transform: 'translate(-50%, -50%)',
                     opacity: isHovered ? 1 : 0,
+                    transition: 'opacity 0.3s ease'
                 }}
             />
 
-            {/* Smoke Trail Particles - Behind content */}
+            {/* Smoke Trail Particles */}
             <div className="fixed inset-0 pointer-events-none z-0">
                 {smokeParticles.map(particle => (
                     <div
@@ -317,10 +255,8 @@ const Hero = () => {
                 ))}
             </div>
 
-            <div className="flex flex-col items-center justify-center min-h-screen py-24 sm:py-32">
+            <div className="flex flex-col items-center justify-center min-h-screen py-24 sm:py-32 relative z-10">
                 <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 lg:px-20 flex flex-col items-center text-center">
-               
-
                     <h1 className="flex flex-col items-center font-display font-black text-[50px] sm:text-[70px] md:text-[90px] lg:text-[110px] leading-[0.9] tracking-tighter uppercase text-slate-900">
                         <div className="hero-line overflow-hidden">
                             <span className="inline-block">TRADITIONAL TASTE</span>
@@ -353,12 +289,9 @@ const Hero = () => {
             </div>
 
             {/* Bottom Bar CTAs */}
-            <div className="absolute bottom-10 w-full z-30 pointer-events-none">
+            <div className="absolute bottom-10 w-full z-40 pointer-events-none">
                 <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 lg:px-20 flex flex-col sm:flex-row justify-between items-center gap-6 pointer-events-auto">
                     <motion.button 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 1 }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="hero-cta w-full sm:w-auto font-bold text-sm uppercase tracking-widest px-10 py-4 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white transition-all duration-300 bg-white shadow-lg"
@@ -366,13 +299,9 @@ const Hero = () => {
                         Explore Products
                     </motion.button>
 
-                    {/* Spacer for Video Pill */}
-                    <div className="hidden md:block w-[320px] h-[200px] shrink-0 pointer-events-none" />
+                    <div className="hidden md:block w-[200px] lg:w-[320px] h-20 shrink-0 pointer-events-none" />
 
                     <motion.button 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 1.2 }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="hero-cta w-full sm:w-auto font-bold text-sm uppercase tracking-widest px-10 py-4 rounded-full border-2 border-neps-blue text-neps-blue hover:bg-neps-blue hover:text-white transition-all duration-300 bg-white shadow-lg"
@@ -385,8 +314,8 @@ const Hero = () => {
             {/* Cinematic Video Pill */}
             <div
                 ref={videoPillRef}
-                className="w-[200px] h-[130px] md:w-[260px] md:h-[165px] lg:w-[320px] lg:h-[200px] bg-black border-2 border-slate-100 rounded-[50px] overflow-hidden absolute bottom-10 left-1/2 -translate-x-1/2 shadow-2xl z-20 cursor-pointer group"
-                style={{ willChange: 'transform' }}
+                className="w-[200px] h-[130px] md:w-[260px] md:h-[165px] lg:w-[320px] lg:h-[200px] bg-black border-2 border-slate-100 rounded-[50px] overflow-hidden absolute bottom-10 left-1/2 -translate-x-1/2 shadow-2xl z-30 cursor-pointer group"
+                style={{ willChange: 'transform, width, height, bottom, border-radius' }}
             >
                 <div className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="w-12 h-12 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/60">
@@ -402,8 +331,7 @@ const Hero = () => {
                     muted
                     playsInline
                     onLoadedData={() => {
-                        // Ensure video plays after loading
-                        videoRef.current?.play().catch(err => console.log('Video play failed:', err));
+                        videoRef.current?.play().catch(() => {});
                     }}
                 />
             </div>
@@ -412,4 +340,3 @@ const Hero = () => {
 };
 
 export default Hero;
-

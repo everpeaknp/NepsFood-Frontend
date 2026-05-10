@@ -1,20 +1,45 @@
 'use client';
 
-import { ReactNode } from 'react';
-import { ReactLenis } from 'lenis/react';
-import LoadingScreen from './LoadingScreen';
+import { useState, useEffect } from "react";
+import LoadingScreen from "./LoadingScreen";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface ClientLayoutProps {
-  children: ReactNode;
-}
+export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  const [showContent, setShowContent] = useState(false);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
 
-export default function ClientLayout({ children }: ClientLayoutProps) {
+  useEffect(() => {
+    // Check if seen in this session
+    const hasSeen = sessionStorage.getItem('hasSeenLoading');
+    if (hasSeen) {
+      setShowContent(true);
+      setIsFirstVisit(false);
+    } else {
+      setIsFirstVisit(true);
+      // Content will be shown by LoadingScreen's completion
+    }
+  }, []);
+
+  const handleLoadingComplete = () => {
+    setShowContent(true);
+  };
+
   return (
-    <ReactLenis root>
-      <LoadingScreen />
-      <div className="min-h-screen bg-white selection:bg-neps-blue selection:text-white">
+    <>
+      <AnimatePresence mode="wait">
+        {isFirstVisit && !showContent && (
+          <LoadingScreen onComplete={handleLoadingComplete} />
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        initial={isFirstVisit ? { opacity: 0 } : { opacity: 1 }}
+        animate={{ opacity: showContent ? 1 : 0 }}
+        transition={{ duration: 1, ease: "easeInOut" }}
+        style={{ visibility: showContent ? "visible" : "hidden" }}
+      >
         {children}
-      </div>
-    </ReactLenis>
+      </motion.div>
+    </>
   );
 }

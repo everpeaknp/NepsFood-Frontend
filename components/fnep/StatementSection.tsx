@@ -10,7 +10,7 @@ const StatementSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const textRef = useRef<HTMLHeadingElement>(null);
   
-  const text = "We are not just a kitchen. We are a food production, food engineering, catering, and ingredient company bringing authentic Nepalese flavours into a modern commercial market.";
+  const text = "Neps Foods is a bridge between generations. We bring traditional Nepalese culinary heritage into the modern world through world-class engineering and scalable commercial production.";
 
   useEffect(() => {
     const ctx = gsap.context(() => {

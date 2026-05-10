@@ -3,16 +3,17 @@
 import { motion } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
+// GSAP registration moved inside useEffect to prevent SSR errors
 
 const navLinks = [
   { name: 'Home', href: '/' },
-  { name: 'About Us', href: '/about' },
+  { name: 'About Us', href: '/about-us-static' },
   { name: 'Factory', href: '/#factory' },
-  { name: 'Products', href: '/#products' },
+  { name: 'Products', href: '/products-static' },
   { name: 'Catering', href: '/#catering' },
   { name: 'Contact', href: '/#contact' },
 ];
@@ -24,6 +25,8 @@ export default function Navbar() {
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
@@ -76,11 +79,11 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <motion.a
+              <Link
                 key={link.name}
                 href={link.href}
                 className={`relative text-[10px] font-black uppercase tracking-widest transition-colors duration-500 py-2 ${
-                  scrolled ? 'text-slate-600 hover:text-neps-blue' : 'text-slate-600 hover:text-neps-blue'
+                  scrolled ? 'text-black hover:text-neps-red' : 'text-black hover:text-neps-red'
                 }`}
                 onMouseEnter={() => setHoveredLink(link.name)}
                 onMouseLeave={() => setHoveredLink(null)}
@@ -93,7 +96,7 @@ export default function Navbar() {
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-              </motion.a>
+              </Link>
             ))}
             
             <motion.button
@@ -131,14 +134,14 @@ export default function Navbar() {
           className="md:hidden bg-white border-b border-slate-100 px-4 pt-2 pb-6 flex flex-col space-y-4"
         >
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.name}
               href={link.href}
-              className="px-3 py-2 text-base font-semibold text-slate-600 hover:text-neps-blue"
+              className="px-3 py-2 text-base font-black uppercase tracking-widest text-black hover:text-neps-red"
               onClick={() => setIsOpen(false)}
             >
               {link.name}
-            </a>
+            </Link>
           ))}
           <button className="w-full bg-neps-blue text-white px-5 py-3 rounded-xl text-sm font-bold">
             Get a Quote

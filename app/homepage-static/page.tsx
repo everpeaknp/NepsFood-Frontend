@@ -11,12 +11,10 @@ import Gallery from '@/components/fnep/Gallery';
 import PreFooterCTA from '@/components/fnep/PreFooterCTA';
 import BrandSignature from '@/components/fnep/BrandSignature';
 import Footer from '@/components/fnep/Footer';
-import LoadingScreen from '@/components/fnep/LoadingScreen';
 
 export default function Home() {
   return (
     <>
-      <LoadingScreen />
       <Navbar />
       <main className="relative">
         <div className="relative z-10">

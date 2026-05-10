@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter, Barlow_Condensed, Space_Grotesk } from "next/
 import "./globals.css";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ClientLayout from "@/components/fnep/ClientLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,7 +51,9 @@ export default function RootLayout({
       >
         <AuthProvider>
           <CurrencyProvider>
-            {children}
+            <ClientLayout>
+              {children}
+            </ClientLayout>
           </CurrencyProvider>
         </AuthProvider>
       </body>

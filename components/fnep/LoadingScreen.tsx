@@ -4,45 +4,48 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GooeyText } from '@/components/fnep/ui/gooey-text-morphing';
 
-export default function LoadingScreen() {
-  const [isLoading, setIsLoading] = useState<boolean | null>(null);
+interface LoadingScreenProps {
+  onComplete?: () => void;
+}
+
+export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if the user has already seen the loading screen in this session
+    // Check session storage to avoid redundant loading screens
     if (sessionStorage.getItem('hasSeenLoading')) {
       setIsLoading(false);
-    } else {
-      // Mark as seen immediately
-      sessionStorage.setItem('hasSeenLoading', 'true');
-      setIsLoading(true);
-      
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 6000);
-
-      return () => clearTimeout(timer);
+      onComplete?.();
+      return;
     }
-  }, []);
 
-  // During the first frame (hydration) or if already seen, don't show anything
-  if (isLoading === null || isLoading === false) {
-    return null;
-  }
+    // Set a cinematic duration for the first visit
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      sessionStorage.setItem('hasSeenLoading', 'true');
+      // Give a tiny extra delay for the exit animation before revealing content
+      setTimeout(() => {
+        onComplete?.();
+      }, 500);
+    }, 4500); // Reduced from 6s to 4.5s for a snappier feel
+
+    return () => clearTimeout(timer);
+  }, [onComplete]);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isLoading && (
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#FFF8F0]"
         >
           <div className="flex flex-col items-center gap-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0 }}
+              transition={{ duration: 0.8 }}
             >
               <GooeyText
                 texts={["NEPS", "FOODS", "QUALITY", "SCALE"]}
@@ -53,28 +56,31 @@ export default function LoadingScreen() {
               />
             </motion.div>
             
-            {/* Loading dots */}
+            {/* Elegant Progress Indicator */}
             <motion.div 
-              className="flex gap-3"
+              className="flex gap-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
+              transition={{ delay: 0.5 }}
             >
-              <motion.div
-                className="w-3 h-3 bg-neps-gold rounded-full"
-                animate={{ scale: [1, 1.5, 1] }}
-                transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-              />
-              <motion.div
-                className="w-3 h-3 bg-neps-blue rounded-full"
-                animate={{ scale: [1, 1.5, 1] }}
-                transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-              />
-              <motion.div
-                className="w-3 h-3 bg-neps-red rounded-full"
-                animate={{ scale: [1, 1.5, 1] }}
-                transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-              />
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className={`w-2 h-2 rounded-full ${
+                    i === 0 ? 'bg-neps-gold' : i === 1 ? 'bg-neps-blue' : 'bg-neps-red'
+                  }`}
+                  animate={{ 
+                    y: [0, -10, 0],
+                    opacity: [0.3, 1, 0.3]
+                  }}
+                  transition={{ 
+                    duration: 1.2, 
+                    repeat: Infinity, 
+                    delay: i * 0.2,
+                    ease: "easeInOut"
+                  }}
+                />
+              ))}
             </motion.div>
           </div>
         </motion.div>
