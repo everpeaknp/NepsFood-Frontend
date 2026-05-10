@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-inter: var(--font-inter);
+  --font-barlow-condensed: var(--font-barlow-condensed);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.font-inter {
+  font-family: var(--font-inter), sans-serif;
+}
+
+.font-barlow-condensed {
+  font-family: var(--font-barlow-condensed), sans-serif;
+}
+
+/* Hide scrollbar for webkit browsers (Chrome, Safari, Edge) */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Responsive Spacing System - Viewport-based for true uniformity */
+:root {
+  /* Section spacing - main vertical gaps between major sections */
+  --section-spacing: clamp(2rem, 4vh, 6rem);
+  
+  /* Component gap - spacing between components within sections */
+  --component-gap: clamp(1.5rem, 3vh, 4rem);
+  
+  /* Card spacing - internal padding for cards and containers */
+  --card-spacing: clamp(1rem, 2vh, 2.5rem);
+  
+  /* Content spacing - spacing between text elements */
+  --content-spacing: clamp(0.75rem, 1.5vh, 1.5rem);
+  
+  /* Small spacing - minimal gaps */
+  --small-spacing: clamp(0.5rem, 1vh, 1rem);
+}
+
+/* Scrolling banner animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+/* Cart notification animation */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
