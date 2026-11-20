@@ -68,7 +68,7 @@ export default function Footer2() {
                                     {column.title}
                                 </h4>
                                 <ul className="flex flex-col gap-2">
-                                    {column.links.map((link) => (
+                                    {column.links.map((link: any) => (
                                         <li key={link.id}>
                                             <a
                                                 href={link.final_url}

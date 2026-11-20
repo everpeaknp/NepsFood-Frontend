@@ -41,3 +41,36 @@ export interface Store {
   phone: string;
   email: string;
 }
+
+export interface SiteSettings {
+  site_name?: string;
+  site_logo?: string;
+  site_logo_footer?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  [key: string]: any;
+}
+
+export interface FooterLink {
+  id: number;
+  title: string;
+  final_url: string;
+  open_in_new_tab?: boolean;
+  order?: number;
+}
+
+export interface FooterColumn {
+  id: number;
+  title: string;
+  order?: number;
+  links: FooterLink[];
+}
+
+export interface NavigationMenu {
+  id: number;
+  title: string;
+  final_url: string;
+  open_in_new_tab?: boolean;
+  order?: number;
+}
