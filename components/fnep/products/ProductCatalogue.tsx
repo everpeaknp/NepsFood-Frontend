@@ -11,7 +11,7 @@ const CATEGORIES = ["All Collections", ...Array.from(new Set(PRODUCTS.map(p => p
 export default function ProductCatalogue() {
   const [activeCategory, setActiveCategory] = useState("All Collections");
   const [searchQuery, setSearchQuery] = useState("");
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -241,3 +241,4 @@ const GlobalStyles = () => (
     }
   `}</style>
 );
+
