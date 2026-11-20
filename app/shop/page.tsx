@@ -8,10 +8,10 @@ import Footer3 from "@/components/Footer3";
 import Footer2 from "@/components/Footer2";
 import CopyrightFooter from "@/components/CopyrightFooter";
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { X } from "lucide-react";
 
-export default function ShopPage() {
+function ShopContent() {
     const searchParams = useSearchParams();
     const urlCategory = searchParams.get('category');
     const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -88,5 +88,14 @@ export default function ShopPage() {
             <Footer2 />
             <CopyrightFooter />
         </div>
+    );
+}
+
+
+export default function ShopPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-white" />}>
+            <ShopContent />
+        </Suspense>
     );
 }
