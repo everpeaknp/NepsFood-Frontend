@@ -32,3 +32,12 @@ export interface Vendor {
   order: number;
   is_active: boolean;
 }
+
+export interface Store {
+  id: number;
+  country: string;
+  city: string;
+  address: string;
+  phone: string;
+  email: string;
+}
